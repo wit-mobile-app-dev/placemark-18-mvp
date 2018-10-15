@@ -14,30 +14,17 @@ import org.wit.placemark.main.MainApp
 
 class PlacemarkMapsActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
 
-  lateinit var map: GoogleMap
-  lateinit var app: MainApp
+  lateinit var presenter: PlacemarkMapsPresenter
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     setContentView(R.layout.activity_placemark_maps)
     setSupportActionBar(toolbarMaps)
-    app = application as MainApp
+    presenter = PlacemarkMapsPresenter(this)
 
     mapView.onCreate(savedInstanceState);
     mapView.getMapAsync {
-      map = it
-      configureMap()
-    }
-  }
-
-  fun configureMap() {
-    map.uiSettings.setZoomControlsEnabled(true)
-    map.setOnMarkerClickListener(this)
-    app.placemarks.findAll().forEach {
-      val loc = LatLng(it.lat, it.lng)
-      val options = MarkerOptions().title(it.title).position(loc)
-      map.addMarker(options).tag = it.id
-      map.moveCamera(CameraUpdateFactory.newLatLngZoom(loc, it.zoom))
+      presenter.populateMap(it)
     }
   }
 

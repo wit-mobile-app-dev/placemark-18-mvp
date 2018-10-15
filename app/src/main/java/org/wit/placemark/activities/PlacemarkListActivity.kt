@@ -15,27 +15,18 @@ import org.wit.placemark.models.PlacemarkModel
 
 class PlacemarkListActivity : AppCompatActivity(), PlacemarkListener {
 
-  lateinit var app: MainApp
+  lateinit var presenter: PlacemarkListPresenter
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     setContentView(R.layout.activity_placemark_list)
-    app = application as MainApp
     toolbarMain.title = title
     setSupportActionBar(toolbarMain)
 
+    presenter = PlacemarkListPresenter(this)
     val layoutManager = LinearLayoutManager(this)
     recyclerView.layoutManager = layoutManager
-    recyclerView.adapter = PlacemarkAdapter(app.placemarks.findAll(), this)
-    loadPlacemarks()
-  }
-
-  private fun loadPlacemarks() {
-    showPlacemarks( app.placemarks.findAll())
-  }
-
-  fun showPlacemarks (placemarks: List<PlacemarkModel>) {
-    recyclerView.adapter = PlacemarkAdapter(placemarks, this)
+    recyclerView.adapter = PlacemarkAdapter(presenter.getPlacemarks(), this)
     recyclerView.adapter?.notifyDataSetChanged()
   }
 
@@ -57,7 +48,7 @@ class PlacemarkListActivity : AppCompatActivity(), PlacemarkListener {
   }
 
   override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-    loadPlacemarks()
+    recyclerView.adapter?.notifyDataSetChanged()
     super.onActivityResult(requestCode, resultCode, data)
   }
 }

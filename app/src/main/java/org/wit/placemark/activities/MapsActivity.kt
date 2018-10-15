@@ -15,57 +15,39 @@ import com.google.android.gms.maps.model.MarkerOptions
 import org.wit.placemark.R
 import org.wit.placemark.models.Location
 
-class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarkerDragListener, GoogleMap.OnMarkerClickListener {
+class MapsActivity : AppCompatActivity(), GoogleMap.OnMarkerDragListener, GoogleMap.OnMarkerClickListener {
 
-  private lateinit var map: GoogleMap
-  var location = Location()
+  lateinit var map: GoogleMap
+  lateinit var presenter: MapsPresenter
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     setContentView(R.layout.activity_maps)
-    location = intent.extras.getParcelable<Location>("location")
     val mapFragment = supportFragmentManager
         .findFragmentById(R.id.map) as SupportMapFragment
-    mapFragment.getMapAsync(this)
+    mapFragment.getMapAsync {
+      map = it
+      map.setOnMarkerDragListener(this)
+      map.setOnMarkerClickListener(this)
+      presenter.initMap(map)
+    }
+    presenter = MapsPresenter(this)
   }
 
-  override fun onMapReady(googleMap: GoogleMap) {
-    map = googleMap
-    map.setOnMarkerDragListener(this)
-    map.setOnMarkerClickListener(this)
-    val loc = LatLng(location.lat, location.lng)
-    val options = MarkerOptions()
-        .title("Placemark")
-        .snippet("GPS : " + loc.toString())
-        .draggable(true)
-        .position(loc)
-    map.addMarker(options)
-    map.moveCamera(CameraUpdateFactory.newLatLngZoom(loc, location.zoom))
-  }
+  override fun onMarkerDragStart(marker: Marker) {}
 
-  override fun onMarkerDragStart(marker: Marker) {
-  }
-
-  override fun onMarkerDrag(marker: Marker) {
-  }
+  override fun onMarkerDrag(marker: Marker) {}
 
   override fun onMarkerDragEnd(marker: Marker) {
-    location.lat = marker.position.latitude
-    location.lng = marker.position.longitude
-    location.zoom = map.cameraPosition.zoom
+    presenter.updateLocation(marker.position.latitude, marker.position.longitude, map.cameraPosition.zoom)
   }
 
   override fun onBackPressed() {
-    val resultIntent = Intent()
-    resultIntent.putExtra("location", location)
-    setResult(Activity.RESULT_OK, resultIntent)
-    finish()
-    super.onBackPressed()
+    presenter.onBackPressed()
   }
 
   override fun onMarkerClick(marker: Marker): Boolean {
-    val loc = LatLng(location.lat, location.lng)
-    marker.setSnippet("GPS : " + loc.toString())
+    presenter.updateMarker(marker)
     return false
   }
 }
